@@ -1,4 +1,7 @@
-class Task extends Group{
+import Group from "./draww/Group.js";
+import Rect from "./draww/Rect.js";
+
+export default class Task extends Group{
     /**
      * @param x : number
      * The x position of the current Task
@@ -14,9 +17,12 @@ class Task extends Group{
      * The width of the Task (display)
      * @param height : number
      * The height of the Task (display)
+     * @param id : number
+     * The id of the Task, used for the database
      */
-    constructor(x, y, title, description, number_to_reach, width, height) {
+    constructor(x, y, title, description, number_to_reach, width, height, id) {
         super(x, y);
+        this.id = id
         this._completed = false;
         this._title = title;
         this._description = description;
@@ -29,6 +35,7 @@ class Task extends Group{
         this._rect_title.text = title;
         this._rect_title.text_color = (this.completed ? "green" : "red")
         this._rect_title.div.style.textShadow = "1px 1px 5px black"
+        this._useful_code = "";
 
         this._function_to_complete = function (){}
 
@@ -134,5 +141,13 @@ class Task extends Group{
 
     set function_to_complete(value){
         this._function_to_complete = value;
+    }
+
+    set useful_code (/*function*/value){
+        this._useful_code = value;
+    }
+
+    get useful_code(){
+        return this._useful_code;
     }
 }
