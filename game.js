@@ -10,6 +10,7 @@ import Task   from './Task.js';
 import Pause  from "./Pause.js";
 import RepeatingPicture from "./draww/RepeatingPicture.js";
 import Table  from "./Table.js";
+import Shape from "./draww/Shape";
 
 
 export default function game(name, language, password, socket)
@@ -210,13 +211,14 @@ export default function game(name, language, password, socket)
         /* ===== PAUSE ===== */
 
         let pause_width = 50;
+        let pause_height = 50;
         let pause_button = new Group(window.innerWidth - pause_width - 10, 10)
         pause_button.appendShape(new Circle(0, 0, "#BBBBBB", pause_width))
         pause_button.appendShape(new Rect(pause_width/7*2, pause_width/6*1.5, "#555555", pause_width/7, pause_width/2))
         pause_button.appendShape(new Rect(pause_width/7*4, pause_width/6*1.5, "#555555", pause_width/7, pause_width/2))
         canvas.appendShape(pause_button)
         pause_button.width = pause_width;
-        pause_button.height = pause_width;
+        pause_button.height = pause_height;
         pause_button.div.style.cursor = "pointer"
         pause_button.div.onclick = pause
         pause_button.width = pause_width;
@@ -256,11 +258,13 @@ export default function game(name, language, password, socket)
                 if (window.shift) vitesse *= 2;
                 player.move = key_up || key_left || key_down || key_right;
                 if (player.move) {
-                    let distance_x = 0, distance_y = 0;
-
-                    let can_move = (position === "outside" && player.y >= canvas.height -2 * vitesse - wall_size - player.height && player.x >= door.x && player.x + player.width <= door.x + door.width)
-                    let can_go_right = (position === "outside" && player.y >= canvas.height -2 * vitesse - wall_size - player.height && player.x + player. width<= door.x + door.width)
-                    let can_go_left = (position === "outside" && player.y >= canvas.height -2 * vitesse - wall_size - player.height && player.x > door.x)
+                    let distance_x = 0, distance_y = 0, can_move = false, can_go_right = false, can_go_left = false;
+                    if (position === "outside") {
+                        let below_canvas = canvas.height - 2 * vitesse - wall_size - player.height
+                        can_move     = ( player.y >= below_canvas && player.x >= door.x && player.x + player.width <= door.x + door.width)
+                        can_go_right = ( player.y >= below_canvas && player.x + player.width <= door.x + door.width - wall_size)
+                        can_go_left  = ( player.y >= below_canvas && player.x > door.x + wall_size)
+                    }
                     if (key_up) {
                         if (window.last_key === "up" || window.last_key === "") {
                             player.rotate(180);
@@ -349,6 +353,17 @@ export default function game(name, language, password, socket)
                     if (touche[0]) {
                         player.x -= distance_x;
                         player.y -= distance_y;
+                    }
+
+                    touche = player.head.touch(window.touch[window.position]["moveable"], 5);
+                    if (touche[0]){
+                        /*Si le joueur a touché un objet mobile*/
+
+                        for (let i = 1; i < touche.length; i++){
+                            touche[i].x += distance_x
+                            touche[i].y += distance_y
+                        }
+
                     }
                 }
                 window.x = player.x - (window.innerWidth/2 - player.width/2)
@@ -789,13 +804,14 @@ export default function game(name, language, password, socket)
         }
 
         function create_map_outside() {
-            additionnal_height = 300
+            window.additionnal_height = 300
             window.position = "outside"
             window.plan = {
                 outside: {},
                 house_walls: {},
                 inside: {}
             }
+
 
             let grass = new RepeatingPicture(wall_size, wall_size, "/images/Grass.png", width - 2* wall_size, height - 2 * wall_size);
             window.carte = new Group(0, 0);
@@ -811,7 +827,9 @@ export default function game(name, language, password, socket)
             plan.outside.fountain.water = new Circle(plan.outside.entry_path.path_around_fountain.width / 20, plan.outside.entry_path.path_around_fountain.width / 20, "#2389DA", plan.outside.entry_path.path_around_fountain.width / 5 * 2.5)
             plan.outside.fountain.water_animation = new Circle(plan.outside.entry_path.path_around_fountain.width / 5 * 1.5 - 15, plan.outside.entry_path.path_around_fountain.width / 5 * 1.5 - 15, "transparent", 30)
             plan.outside.fountain.water_animation.moveX = function () {
-                if (!this.move) return
+                if (!this.move) {
+                    return;
+                }
                 if (this.width >= plan.outside.entry_path.path_around_fountain.width / 5 * 2.5) {
                     this.x = plan.outside.entry_path.path_around_fountain.width / 5 * 1.5 - 15 - this.border_width
                     this.width = 30
@@ -845,6 +863,7 @@ export default function game(name, language, password, socket)
                 plan.outside.fountain.cross_y
             ]);
             plan.outside.fountain.moveY = function () {
+                console.log("function called")
                 if (this.water_animation.width >= plan.outside.entry_path.path_around_fountain.width / 4) {
                     this.water_animation_2.move = true;
                     this.moveY = function () {
@@ -859,6 +878,8 @@ export default function game(name, language, password, socket)
                 plan.outside.fountain.water_animation_2.moveX()
                 plan.outside.fountain.water_animation_2.moveY()
             }
+            canvas.appendShape(plan.outside.fountain)
+
 
 
             plan.outside.entry_path.parquet = new RepeatingPicture(plan.outside.entry_path.first_rect.x, height, "/images/Parquet.png", plan.outside.entry_path.first_rect.width, additionnal_height);
@@ -898,8 +919,6 @@ export default function game(name, language, password, socket)
                 carpet.border_style = "solid"
                 carpet.border = "#FFD700";
             }
-
-
             plan.outside.entry_path.appendShapes([
                 plan.outside.entry_path.first_rect,
                 plan.outside.entry_path.path_around_fountain,
@@ -940,7 +959,7 @@ export default function game(name, language, password, socket)
 
 
         function create_map_hall(){
-            position = "hall";
+            window.position = "hall";
             window.touch = []
             window.touch["hall"] = []
             window.touch["hall"]["moveable"] = []
@@ -954,6 +973,8 @@ export default function game(name, language, password, socket)
 
             let table = new Table(500, 500, 300)
             carte.appendShape(table);
+
+            window.touch["hall"]["moveable"] = [table.shapes[0]]
 
             create_walls_hall();
         }
