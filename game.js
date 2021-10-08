@@ -10,7 +10,7 @@ import Task   from './Task.js';
 import Pause  from "./Pause.js";
 import RepeatingPicture from "./draww/RepeatingPicture.js";
 import Table  from "./Table.js";
-import Shape from "./draww/Shape";
+import {Player} from "./Player.js";
 
 
 export default function game(name, language, password, socket)
@@ -88,6 +88,7 @@ export default function game(name, language, password, socket)
         window.key_up = false;
         window.key_right = false;
         window.key_down = false;
+        window.shift = false;
 
         window.last_key = "down"
 
@@ -98,48 +99,12 @@ export default function game(name, language, password, socket)
         eval(`create_map_${load_save === "no save" ? "outside" : load_save.lieu}()`)
         /* ===== </MAP> ===== */
 
-        /* ===== <PLAYER> ===== */
 
-        window.shift = false;
+        let player = new Player(500, 500, 1.6)//new Group(500, 500);
 
-        let player = new Group(500, 500);
-        player.div.id = "player";
-        player.change_size = 1.6;
-
-        player.width = 70 * player.change_size;
-        player.height = 55 * player.change_size;
-        player.div.style.transformOrigin = "50% 45.5%";
-
-        player.left_foot = new Ellipse(15 * player.change_size, 35 * player.change_size, "#000000", 15 * player.change_size, 20 * player.change_size)
-        player.right_foot = new Ellipse(40 * player.change_size, 35 * player.change_size, "#000000", 15 * player.change_size, 20 * player.change_size)
-        player.left_arm = new Ellipse(0, 20 * player.change_size, "#0A266A", 7 * player.change_size, 20 * player.change_size)
-        player.right_arm = new Ellipse(63 * player.change_size, 20 * player.change_size, "#0A266A", 7 * player.change_size, 20 * player.change_size)
-        player.head = new Ellipse(5 * player.change_size, 0, "#FFD49D", 60 * player.change_size, 50 * player.change_size)
-        player.mouth = new Ellipse(28.5 * player.change_size, 40 * player.change_size, "#000000", 12 * player.change_size, 3 * player.change_size)
-        player.left_eye = new Ellipse(22 * player.change_size, 32 * player.change_size, "#4afaaa", 7 * player.change_size, 4 * player.change_size)
-        player.right_eye = new Ellipse(41 * player.change_size, 32 * player.change_size, "#4afaaa", 7 * player.change_size, 4 * player.change_size)
-        player.devant_casquette = new Ellipse(26 * player.change_size, 8 * player.change_size, "#0A264A", 18 * player.change_size, 25 * player.change_size)
-        player.casquette = new Circle(21 * player.change_size, 0, "#2A466A", 28 * player.change_size)
-
-
-        player.left_eye.rotate(15)
-        player.right_eye.rotate(-15)
-
-        player.appendShapes([
-            player.left_foot,
-            player.right_foot,
-            player.left_arm,
-            player.right_arm,
-            player.head,
-            player.mouth,
-            player.left_eye,
-            player.right_eye,
-            player.devant_casquette,
-            player.casquette
-        ])
 
         canvas.appendShape(player)
-        /* ===== </PLAYER> ===== */
+
 
         player.x = plan.outside.entry_path.x + plan.outside.entry_path.first_rect.width/2 - player.width/2 + plan.outside.entry_path.first_rect.x
         window.x = player.x - (window.innerWidth/2 - player.width/2)
