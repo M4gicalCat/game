@@ -1,13 +1,13 @@
-import Canvas from "./draww/Canvas.js";
-import Picture from "./draww/Picture.js";
-import Group from "./draww/Group.js";
-import Rect from "./draww/Rect.js";
-import TextField from "./draww/TextField.js";
-import BoxError from "./draww/BoxError.js";
+import Canvas from "../draww/Canvas.js";
+import Picture from "../draww/Picture.js";
+import Group from "../draww/Group.js";
+import Rect from "../draww/Rect.js";
+import TextField from "../draww/TextField.js";
+import BoxError from "../draww/BoxError.js";
 import game from "./game.js";
 import {io} from "socket.io-client";
-import Password from "./draww/Password";
-import Popup from "./draww/Popup";
+import Password from "../draww/Password";
+import Popup from "../draww/Popup";
 const socket = io('http://localhost:3000', { transports : ['websocket'] });
 
 socket.on('connect', ()=>{

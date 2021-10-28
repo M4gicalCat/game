@@ -8,9 +8,9 @@ import Circle from '/draww/Circle.js';
 import Popup from '/draww/Popup.js';
 import Task   from './Task.js';
 import Pause  from "./Pause.js";
-import RepeatingPicture from "./draww/RepeatingPicture.js";
+import RepeatingPicture from "../draww/RepeatingPicture.js";
 import Table  from "./Table.js";
-import {Player} from "./Player.js";
+import {Player} from "./Player.ts";
 
 
 export default function game(name, language, password, socket)
@@ -94,13 +94,19 @@ export default function game(name, language, password, socket)
 
         window.popup_tasks_displayed = false;
 
+        window.last_task_id_en_cours = 0;
+        if (load_save !== "no save"){
+            window.last_task_id_en_cours = Math.max(load_save.task_0.id, load_save.task_1.id);
+        }
+
+
 
         /* ===== <MAP> ===== */
         eval(`create_map_${load_save === "no save" ? "outside" : load_save.lieu}()`)
         /* ===== </MAP> ===== */
 
 
-        let player = new Player(500, 500, 1.6)//new Group(500, 500);
+        let player = new Player(500, 500, 1.6)
 
 
         canvas.appendShape(player)
@@ -173,7 +179,7 @@ export default function game(name, language, password, socket)
 
         /* ===== </SCREEN> ===== */
 
-        /* ===== PAUSE ===== */
+        /* ===== <PAUSE> ===== */
 
         let pause_width = 50;
         let pause_height = 50;
@@ -188,7 +194,7 @@ export default function game(name, language, password, socket)
         pause_button.div.onclick = pause
         pause_button.width = pause_width;
 
-        /* ===== PAUSE ===== */
+        /* ===== </PAUSE> ===== */
 
 
         if (load_save !== "no save"){
@@ -384,9 +390,9 @@ export default function game(name, language, password, socket)
                     player.right_eye.visible = true;
                     player.left_eye.visible = true;
                 }
-                if (typeof displayed_tasks[0] === "object")
+                if (displayed_tasks[0] != null)
                     displayed_tasks[0].function_to_complete()
-                if (typeof displayed_tasks[1] === "object")
+                if (displayed_tasks[1] != null)
                     displayed_tasks[1].function_to_complete()
             }
 
@@ -441,12 +447,12 @@ export default function game(name, language, password, socket)
                 username.width = outer_screen.width - 10
                 username.height = outer_screen.height / 4
                 document.body.style.fontSize = outer_screen.height / 8 + "px";
-                if (typeof displayed_tasks[0] === "object") {
+                if (displayed_tasks[0] != null) {
                     displayed_tasks[0].width = outer_screen.width - 10;
                     displayed_tasks[0].height = outer_screen.height / 4
                     displayed_tasks[0].y = outer_screen.height / 4;
                 }
-                if (typeof displayed_tasks[1] === "object") {
+                if (displayed_tasks[1] != null) {
                     displayed_tasks[1].width = outer_screen.width - 10;
                     displayed_tasks[1].height = outer_screen.height / 4
                     displayed_tasks[1].y = outer_screen.height / 2;
@@ -458,25 +464,30 @@ export default function game(name, language, password, socket)
         }
 
         function open_tasks() {
-            if (!window.popup_tasks_displayed) {
-                window.popup_tasks_displayed = true;
-                canvas.animated = false;
-                let popup = new Popup(window.innerWidth / 3, window.innerHeight / 5 * 4, "", "", "green")
-                popup._close.div.addEventListener("click", function () {
-                    window.popup_tasks_displayed = false;
-                    canvas.animated = true
-                })
-                canvas.appendShape(popup)
+            if (window.popup_tasks_displayed) return
+
+            window.popup_tasks_displayed = true;
+            canvas.animated = false;
+            let popup = new Popup(window.innerWidth / 3, window.innerHeight / 5 * 4, "", "", "green")
+            popup._close.div.addEventListener("click", function () {
+                window.popup_tasks_displayed = false;
+                canvas.animated = true
+            })
+            canvas.appendShape(popup)
 
 
-                let popup_title = new Rect(10 + popup._popup.border_width, 50, "transparent", popup.width - 20, (popup.height - 100) / 7)
-                popup_title.text = task_title.text;
-                popup_title.div.style.textAlign = "center"
-                popup_title.div.style.textDecorationLine = "underline"
+            let popup_title = new Rect(10 + popup._popup.border_width, 50, "transparent", popup.width - 20, (popup.height - 100) / 7)
+            popup_title.text = task_title.text;
+            popup_title.div.style.textAlign = "center"
+            popup_title.div.style.textDecorationLine = "underline"
 
-                popup_title.div.style.fontSize = "2em";
-                popup.div.style.fontFamily = "cursive"
+            popup_title.div.style.fontSize = "2em";
+            popup.div.style.fontFamily = "cursive"
 
+            popup.appendShape(popup_title);
+
+
+            if (displayed_tasks[0] != null){
                 let popup_task_1 = new Group(10 + popup._popup.border_width, (popup.height - 100) / 3)
 
                 let popup_task_1_title = new Rect(0, 0, "transparent", (popup.width - 20) / 4, (popup.height - 100) / 3)
@@ -486,27 +497,34 @@ export default function game(name, language, password, socket)
                 let popup_task_1_description = new Rect((popup.width - 20) / 4, 0, "transparent", (popup.width - 20) / 4 * 3, (popup.height - 100) / 3)
                 popup_task_1_description.text = displayed_tasks[0].description
                 popup_task_1.appendShapes([popup_task_1_title, popup_task_1_description])
+                popup.appendShape(popup_task_1);
+            }
 
-                if (typeof displayed_tasks[1] === "object") {
-                    let popup_task_2 = new Group(10 + popup._popup.border_width, (popup.height - 100) / 3 * 2)
+            if (displayed_tasks[1] != null) {
+                let popup_task_2 = new Group(10 + popup._popup.border_width, (popup.height - 100) / 3 * 2)
 
-                    let popup_task_2_title = new Rect(0, 0, "transparent", (popup.width - 20) / 4, (popup.height - 100) / 3)
-                    popup_task_2_title.div.innerHTML = displayed_tasks[1].title + "\n<p style='border: solid 1px black'>" + displayed_tasks[1].number_reached + "/" + displayed_tasks[1].number_to_reach + "</p>"
-                    popup_task_2_title.div.style.textDecorationLine = "underline"
-                    popup_task_2.div.style.textAlign = "center"
-                    let popup_task_2_description = new Rect((popup.width - 20) / 4, 0, "transparent", (popup.width - 20) / 4 * 3, (popup.height - 100) / 3)
-                    popup_task_2_description.text = displayed_tasks[1].description
-                    popup_task_2.appendShapes([popup_task_2_title, popup_task_2_description])
+                let popup_task_2_title = new Rect(0, 0, "transparent", (popup.width - 20) / 4, (popup.height - 100) / 3)
+                popup_task_2_title.div.innerHTML = displayed_tasks[1].title + "\n<p style='border: solid 1px black'>" + displayed_tasks[1].number_reached + "/" + displayed_tasks[1].number_to_reach + "</p>"
+                popup_task_2_title.div.style.textDecorationLine = "underline"
+                popup_task_2.div.style.textAlign = "center"
+                let popup_task_2_description = new Rect((popup.width - 20) / 4, 0, "transparent", (popup.width - 20) / 4 * 3, (popup.height - 100) / 3)
+                popup_task_2_description.text = displayed_tasks[1].description
+                popup_task_2.appendShapes([popup_task_2_title, popup_task_2_description])
 
-                    popup.appendShapes([popup_title, popup_task_1, popup_task_2])
-                }
+                popup.appendShape(popup_task_2)
             }
         }
 
+        function update_last_task_id(id) {
+            window.last_task_id_en_cours = Math.max(last_task_id_en_cours, id);
+        }
+
         function create_task_1(){ /*Complete 3 tasks (tutorial)*/
-            let task =  new Task(0, outer_screen.height / 4, dictionary[language]["tasks_titles"][0], dictionary[language]["tasks_descriptions"][0], 3, outer_screen.width - 10, outer_screen.height / 4, 0);
+            let task =  new Task(0, outer_screen.height / 4, dictionary[language]["tasks_titles"][0], dictionary[language]["tasks_descriptions"][0], 3, outer_screen.width - 10, outer_screen.height / 4, 0, 0);
+            update_last_task_id(task.id);
             task.function_to_complete = function () {
                 if (this.completed) {
+                    displayed_tasks[this.number_in_screen] = null;
                     while (canvas.shapes[i] !== this && i < canvas.shapes.length) {
                         i++
                     }
@@ -518,7 +536,8 @@ export default function game(name, language, password, socket)
         }
 
         function create_task_2(){ /*Move around*/
-            let task = new Task(0, outer_screen.height / 2, dictionary[language]["tasks_titles"][1], dictionary[language]["tasks_descriptions"][1], 4, outer_screen.width - 10, outer_screen.height / 4, 1);
+            let task = new Task(0, outer_screen.height / 2, dictionary[language]["tasks_titles"][1], dictionary[language]["tasks_descriptions"][1], 4, outer_screen.width - 10, outer_screen.height / 4, 1, 1);
+            update_last_task_id(task.id);
             task.tab_to_complete = new Array(4).fill(false)
             task.function_to_complete = function () {
                 this.tab_to_complete[0] = this.tab_to_complete[0] || window.key_up
@@ -532,6 +551,7 @@ export default function game(name, language, password, socket)
                 this.number_reached = nb
                 if (this.completed) {
                     displayed_tasks[0].number_reached = 1
+                    displayed_tasks[this.number_in_screen] = null;
                     displayed_tasks[1] = create_task_3()
                     tasks.appendShape(displayed_tasks[1])
                     this.div.remove()
@@ -550,10 +570,13 @@ export default function game(name, language, password, socket)
         }
 
         function create_task_3() {
-            let task = new Task(0, outer_screen.height / 2, dictionary[language]["tasks_titles"][2], dictionary[language]["tasks_descriptions"][2], 1, outer_screen.width - 10, outer_screen.height / 4, 2);
+            let task = new Task(0, outer_screen.height / 2, dictionary[language]["tasks_titles"][2], dictionary[language]["tasks_descriptions"][2], 1, outer_screen.width - 10, outer_screen.height / 4, 2, 1);
+            update_last_task_id(task.id);
             task.function_to_complete = function (){
                 if (door?.is_open){
                     this.number_reached = 1;
+                    this.completed = true;
+                    displayed_tasks[this.number_in_screen] = null;
                     displayed_tasks[0].number_reached ++;
                     displayed_tasks[1] = create_task_4()
                     tasks.appendShape(displayed_tasks[1]);
@@ -568,19 +591,23 @@ export default function game(name, language, password, socket)
             }
             return task;
         }
+
         function create_task_4(){
-            let task = new Task(0, outer_screen.height / 2, dictionary[language]["tasks_titles"][3], dictionary[language]["tasks_descriptions"][3], 1, outer_screen.width - 10, outer_screen.height / 4, 3) //todo task enter the house, then finish the tutorial task
+            let task = new Task(0, outer_screen.height / 2, dictionary[language]["tasks_titles"][3], dictionary[language]["tasks_descriptions"][3], 1, outer_screen.width - 10, outer_screen.height / 4, 3, 1)
+            update_last_task_id(task.id);
             task.function_to_complete = function (){
                 if (position !== "outside"){
                     this.number_reached = 1;
                     this.completed = true;
+                    displayed_tasks[this.number_in_screen] = null;
                     displayed_tasks[0].number_reached ++;
                     let i = 0;
                     while (canvas.shapes[i] !== this && i < canvas.shapes.length) {
                         i++
                     }
-                    if (canvas.shapes[i] === this)
+                    if (canvas.shapes[i] === this) {
                         canvas.shapes.splice(i, 1)
+                    }
                     this.div.remove()
                     //todo create next task
                 }
@@ -632,8 +659,8 @@ export default function game(name, language, password, socket)
                 "password"           : password,
             })
         }
-        function pause()
-        {
+
+        function pause() {
             let pause = new Pause()
             canvas.appendShape(pause);
             /* upload */
@@ -900,24 +927,28 @@ export default function game(name, language, password, socket)
             create_walls_outside();
         }
 
+        function animation_change_map(second_map){
+            black_filter.visible = true;
+            black_filter.div.style.display = "inline";
+
+            black_filter.div.className = "appear";
+            setTimeout(()=>{
+                clear_map();
+                second_map();
+                black_filter.div.className = "disappear"
+                setTimeout(()=>{
+                    black_filter.div.className = "";
+                    window.position = "hall";
+                    black_filter.visible = false
+                }, 1000)
+            }, 1000)
+        }
+
         function change_map_outside_to_hall(){
             if (window.position !== "outside")return false
             if (black_filter.div.className !== "" || black_filter.visible){return true}
             if (player.y > height + wall_size && !black_filter.visible){
-                black_filter.visible = true;
-                black_filter.div.style.display = "inline";
-
-                black_filter.div.className = "appear";
-                setTimeout(()=>{
-                    clear_map();
-                    create_map_hall();
-                    black_filter.div.className = "disappear"
-                    setTimeout(()=>{
-                        black_filter.div.className = "";
-                        window.position = "hall";
-                        black_filter.visible = false
-                    }, 1000)
-                }, 1000)
+                animation_change_map(create_map_hall);
             }
             return false;
         }

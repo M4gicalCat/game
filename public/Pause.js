@@ -1,5 +1,5 @@
 import Popup from "/draww/Popup.js";
-import Arrow from "/Arrow.js";
+import Arrow from "/public/Arrow.js";
 import Group from "/draww/Group.js";
 import Circle from "/draww/Circle.js";
 

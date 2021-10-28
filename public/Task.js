@@ -1,5 +1,5 @@
-import Group from "./draww/Group.js";
-import Rect from "./draww/Rect.js";
+import Group from "/draww/Group.js";
+import Rect from "/draww/Rect.js";
 
 export default class Task extends Group{
     /**
@@ -20,7 +20,7 @@ export default class Task extends Group{
      * @param id : number
      * The id of the Task, used for the database
      */
-    constructor(x, y, title, description, number_to_reach, width, height, id) {
+    constructor(x, y, title, description, number_to_reach, width, height, id, number_in_screen) {
         super(x, y);
         this.id = id
         this._completed = false;
@@ -50,6 +50,7 @@ export default class Task extends Group{
         this.appendShape(this._rect_nb)
         this._x = x;
         this._y = y;
+        this._number_in_screen = number_in_screen;
     }
 
     get title() {
@@ -149,5 +150,13 @@ export default class Task extends Group{
 
     get useful_code(){
         return this._useful_code;
+    }
+
+    set number_in_screen(value){
+        this._number_in_screen = value;
+    }
+
+    get number_in_screen(){
+        return this._number_in_screen;
     }
 }

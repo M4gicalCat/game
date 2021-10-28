@@ -1,9 +1,21 @@
-import Group from "./draww/Group.js";
-import Ellipse from "./draww/Ellipse.js";
-import Circle from "./draww/Circle.js";
+import Group from "../draww/Group.js";
+import Ellipse from "../draww/Ellipse.js";
+import Circle from "../draww/Circle.js";
 
 export class Player extends Group{
-    constructor(x, y, change_size) {
+    public change_size:      number;
+    public left_foot:        Ellipse;
+    public right_foot:       Ellipse;
+    public left_arm:         Ellipse;
+    public right_arm:        Ellipse;
+    public head:             Ellipse;
+    public mouth:            Ellipse;
+    public left_eye:         Ellipse;
+    public right_eye:        Ellipse;
+    public devant_casquette: Ellipse;
+    public casquette:        Circle;
+
+    public constructor(x :number, y :number, change_size :number) {
         super(x, y);
         this.change_size = change_size;
         this.div.id = "player";
@@ -25,7 +37,7 @@ export class Player extends Group{
         this.left_eye. rotate(15 );
         this.right_eye.rotate(-15);
 
-        this.appendShapes([
+        super.appendShapes([
             this.left_foot,
             this.right_foot,
             this.left_arm,

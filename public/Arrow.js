@@ -1,6 +1,6 @@
-import Group from "./draww/Group.js";
-import Rect from "./draww/Rect.js";
-import Triangle from "./draww/Triangle.js";
+import Group from "../draww/Group.js";
+import Rect from "../draww/Rect.js";
+import Triangle from "../draww/Triangle.js";
 export default class Arrow extends Group{
     constructor(x, y, color, width, height) {
         super(x, y);
